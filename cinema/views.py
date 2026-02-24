@@ -5,6 +5,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -67,7 +68,10 @@ class MovieViewSet(
     @staticmethod
     def _params_to_ints(qs):
         """Converts a list of string IDs to a list of integers"""
-        return [int(str_id) for str_id in qs.split(",")]
+        try:
+            return [int(str_id) for str_id in qs.split(",")]
+        except ValueError:
+            raise ValidationError("IDs should be comma-delimited integers")
 
     def get_queryset(self):
         """Retrieve the movies with filters"""
@@ -143,24 +147,6 @@ class MovieViewSet(
     )
     def list(self, request, *args, **kwargs):
         """Get list of movies"""
-        queryset = self.get_queryset()
-
-        title = request.query_params.get("title")
-        genres = request.query_params.get("genres")
-        actors = request.query_params.get("actors")
-
-        if title:
-            queryset = queryset.filter(title__icontains=title)
-        if genres:
-            queryset = queryset.filter(
-                genres__id__in=genres.split(",")
-            ).distinct()
-        if actors:
-            queryset = queryset.filter(
-                actors__id__in=actors.split(",")
-            ).distinct()
-
-        self.queryset = queryset
         return super().list(request, *args, **kwargs)
 
 
@@ -219,17 +205,6 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         """Get list of sessions"""
-        queryset = self.get_queryset()
-
-        date = request.query_params.get("date")
-        movie = request.query_params.get("movie")
-
-        if date:
-            queryset = queryset.filter(show_time__date=date)
-        if movie:
-            queryset = queryset.filter(movie_id=int(movie))
-
-        self.queryset = queryset
         return super().list(request, *args, **kwargs)
 
 

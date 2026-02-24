@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from cinema.models import Movie, MovieSession, CinemaHall, Genre, Actor
-from cinema.serializers import MovieSerializer, MovieListSerializer, MovieDetailSerializer
+from cinema.serializers import MovieListSerializer, MovieDetailSerializer
 
 MOVIE_URL = reverse("cinema:movie-list")
 MOVIE_SESSION_URL = reverse("cinema:moviesession-list")
@@ -285,6 +285,22 @@ class AuthenticatedMovieAPITests(TestCase):
         self.assertIn(serializer_movie_with_genre_1.data, res.data)
         self.assertNotIn(serializer_movie_with_genre_2.data, res.data)
         self.assertEqual(len(res.data), 1)
+
+    def test_filter_movies_invalid_genre(self):
+        res = self.client.get(
+            MOVIE_URL,
+            {"genres": "1, foo"},
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_movies_invalid_actor(self):
+        res = self.client.get(
+            MOVIE_URL,
+            {"genres": "1, foo"},
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_movie_detail(self):
         movie = sample_movie()
