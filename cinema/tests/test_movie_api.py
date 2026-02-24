@@ -297,7 +297,7 @@ class AuthenticatedMovieAPITests(TestCase):
     def test_filter_movies_invalid_actor(self):
         res = self.client.get(
             MOVIE_URL,
-            {"genres": "1, foo"},
+            {"actors": "1, foo"},
         )
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
